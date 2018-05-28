@@ -55,6 +55,53 @@ Service Manager在用户空间的源代码位于“frameworks/base/cmds/servicem
 
 ![Service Manager在Binder机制中的基本执行流程](http://chuantu.biz/t6/320/1527494412x-1566657549.png)
 
+ServiceManager的入口于文件service_manager.c中，主函数main的实现代码如下所示:
+
+```c
+int main(int argc, char **argv)
+{
+    struct binder_state *bs;
+    void *svcmgr = BINDER_SERVICE_MANAGER;
+    bs = binder_open(128*1024);
+    if (binder_become_contect_manager(bs)) {
+        ALOGE("cannot become context manager (%s)\n", strerror(errno));
+        return -1;
+    }
+    svcmgr_handle = svcmgr;
+    binder_loop(bs, svcmgr_handler);
+    return 0; 
+}
+```
+上述函数main()主要有以下３个功能。
+
+- 打开Binder设备文件。
+- 告诉Binder驱动程序自己是Binder上下文管理者，即前面所说的保护进程。
+- 进入一个无穷循环，充当Server的角色，等待Client的请求。
+
+在分析上述3个功能之前，先来看一下这里用到的结构体binder_state、宏BINDER_SERVICE_MANAGER的定义。结构体binder_state在文件frameworks/base/cmds/servicemanager/binder.c中定义，代码如下所示：
+
+```c
+struct binder_state {
+    int fd;  // 文件描述符
+    void *mapped; // dev/binder设备内存信息的起始地址
+    unsigned mapsize; // 内存映射空间的大小
+};
+```
+其中fd表示文件描述符，即表示打开的“/dev/binder”设备文件描述符；mapped表示把设备文件“/dev/binder”映射到进程空间的起始地址；mapsize表示上述内存映射空间的大小。
+
+宏BINDER_SERVICE_MANAGER在文件frameworks/base/cmds/servicemanager/binder.h中定义，代码如下所示：
+
+```c
+/* 这个宏定义我也不知道什么意思,没有任何赋值的地方在代码中 */
+#define BINDER_SERVICE_MANAGER ((void*) 0)
+```
+**查阅先关资料说这个表示的是Service Manager的句柄为０，Binder通信机制使用句柄来代表远程接口。我们现在暂时认定这个定义是代表远程接口句柄。**
+
+
+
+
+
+
 
 
 
