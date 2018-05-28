@@ -158,7 +158,7 @@ fail_open:
             create_proc_read_entry("state", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_state, NULL);
             create_proc_read_entry("stats", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_stats, NULL);
             create_proc_read_entry("transactions", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transactions, NULL);
-            create_proc_read_entry("transaction_log", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transaction_log,             &binder_transaction_log);
+            create_proc_read_entry("transaction_log", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transaction_log, &binder_transaction_log);
             create_proc_read_entry("failed_transaction_log", S_IRUGO,       binder_proc_dir_entry_root,binder_read_proc_transaction_log, &binder_transaction_log_failed);             
         }
     return ret;
