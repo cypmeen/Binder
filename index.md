@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 ```c
 struct binder_state {
     int fd;  // 文件描述符
-    void *mapped; // dev/binder设备内存信息的起始地址
+    void *mapped; // /dev/binder设备内存信息的起始地址
     unsigned mapsize; // 内存映射空间的大小
 };
 ```
@@ -96,6 +96,76 @@ struct binder_state {
 #define BINDER_SERVICE_MANAGER ((void*) 0)
 ```
 **查阅先关资料说这个表示的是Service Manager的句柄为０，Binder通信机制使用句柄来代表远程接口。我们现在暂时认定这个定义是代表远程接口句柄。**
+
+#### 解析binder_open函数
+在binder.h中找到定义，它是打开Binder设备文件的操作函数，代码如下:
+
+```c
+    struct binder_state *binder_open(unsigned mapsize){
+    struct binder_state *bs;
+    bs = malloc(sizeof(*bs));
+    if (!bs) {
+        errno = ENOMEM;
+        return 0;
+    }
+    bs->fd = open("/dev/binder", O_RDWR);
+    if (bs->fd < 0) {
+        fprintf(stderr,"binder: cannot open device (%s)\n",
+                strerror(errno));
+        goto fail_open;
+    }
+    bs->mapsize = mapsize;
+    bs->mapped = mmap(NULL, mapsize, PROT_READ, MAP_PRIVATE, bs->fd, 0);
+    if (bs->mapped == MAP_FAILED) {
+        fprintf(stderr,"binder: cannot map device (%s)\n",
+                strerror(errno));
+        goto fail_map;
+    }
+        /* TODO: check version */
+    return bs;
+fail_map:
+    close(bs->fd);
+fail_open:
+    free(bs);
+    return 0;
+}
+```
+通过文件操作函数open()打开设备文件“/dev/binder”，此设备文件是在Binder驱动程序模块初始化的时候创建的。接下来先看一下这个设备文件的创建过程，来到<br/>kernel/common/drivers/ staging/android目录，打开文件binder.c，可以看到如下模块初始化入口binder_init：
+
+```c
+    static struct file_operations binder_fops = {
+    .owner = THIS_MODULE,
+    .poll = binder_poll,
+    .unlocked_ioctl = binder_ioctl,
+    .mmap = binder_mmap,
+    .open = binder_open,
+    .flush = binder_flush,
+    .release = binder_release,
+};
+static struct miscdevice binder_miscdev = {
+    .minor = MISC_DYNAMIC_MINOR,
+    .name = "binder",
+    .fops = &binder_fops
+};
+static int __init binder_init(void)
+{
+    int ret;
+    binder_proc_dir_entry_root = proc_mkdir("binder", NULL);
+    if (binder_proc_dir_entry_root)
+        binder_proc_dir_entry_proc = proc_mkdir("proc", binder_proc_dir_entry_root);
+    ret = misc_register(&binder_miscdev);
+    if (binder_proc_dir_entry_root) {
+        create_proc_read_entry("state", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_state, NULL);
+        create_proc_read_entry("stats", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_stats, NULL);
+        create_proc_read_entry("transactions", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transactions, NULL);
+        create_proc_read_entry("transaction_log", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transaction_log, &binder_transaction_log);
+        create_proc_read_entry("failed_transaction_log", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transaction_log, &binder_transaction_log_failed);
+    }
+    return ret;
+}
+device_initcall(binder_init);
+
+```
 
 
 
