@@ -142,27 +142,28 @@ fail_open:
     .flush = binder_flush,
     .release = binder_release,
 };
-static struct miscdevice binder_miscdev = {
-    .minor = MISC_DYNAMIC_MINOR,
-    .name = "binder",
-    .fops = &binder_fops
-};
-static int __init binder_init(void)
-{
-    int ret;
-    binder_proc_dir_entry_root = proc_mkdir("binder", NULL);
-    if (binder_proc_dir_entry_root)
-        binder_proc_dir_entry_proc = proc_mkdir("proc", binder_proc_dir_entry_root);
-    ret = misc_register(&binder_miscdev);
-    if (binder_proc_dir_entry_root) {
-        create_proc_read_entry("state", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_state, NULL);
-        create_proc_read_entry("stats", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_stats, NULL);
-        create_proc_read_entry("transactions", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transactions, NULL);
-        create_proc_read_entry("transaction_log", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transaction_log, &binder_transaction_log);
-        create_proc_read_entry("failed_transaction_log", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transaction_log, &binder_transaction_log_failed);
-    }
+    static struct miscdevice binder_miscdev = {
+        .minor = MISC_DYNAMIC_MINOR,
+        .name = "binder",
+        .fops = &binder_fops
+    };
+    static int __init binder_init(void)
+    {
+        int ret;
+        binder_proc_dir_entry_root = proc_mkdir("binder", NULL);
+        if (binder_proc_dir_entry_root)
+            binder_proc_dir_entry_proc = proc_mkdir("proc", binder_proc_dir_entry_root);
+        ret = misc_register(&binder_miscdev);
+        if (binder_proc_dir_entry_root) {
+            create_proc_read_entry("state", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_state, NULL);
+            create_proc_read_entry("stats", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_stats, NULL);
+            create_proc_read_entry("transactions", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transactions, NULL);
+            create_proc_read_entry("transaction_log", S_IRUGO, binder_proc_dir_entry_root, binder_read_proc_transaction_log,             &binder_transaction_log);
+            create_proc_read_entry("failed_transaction_log", S_IRUGO,       binder_proc_dir_entry_root,binder_read_proc_transaction_log, &binder_transaction_log_failed);             
+        }
     return ret;
 }
+
 device_initcall(binder_init);
 
 ```
