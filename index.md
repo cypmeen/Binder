@@ -1,4 +1,4 @@
-##　欢迎和我一起走进Android Binder机制
+##欢迎和我一起走进Android Binder机制
 
 **Binder**机制是Android的一高阶核心机制。
 
@@ -15,9 +15,23 @@
 - 共享内存
 - 信号量
 
-Android系统没有采用上述提到的各种进程间通信机制,而是采用Binder机制。　其实Binder并不是Android提出来的一套新的进程间通信机制,它是基于OpenBinder来实现的。Binder是一种进程间通信机制，其类似于COM和CORBA分布式组件架构。具体来说，其实是提供了远程过程调用（RPC）功能。
+    Android系统没有采用上述提到的各种进程间通信机制,而是采用Binder机制。　其实Binder并不是Android提出来的一套新的进程间通信机制,它是基于OpenBinder来实现的。Binder是一种进程间通信机制，其类似于COM和CORBA分布式组件架构。具体来说，其实是提供了远程过程调用（RPC）功能。
+
+    在Android系统中，Binder机制由Client、Server、Service Manager和Binder驱动程序等一系统组件组成。其中Client、Server和Service Manager运行在用户空间，Binder驱动程序运行在内核空间，Binder就是一种把这4个组件黏合在一起的黏结剂。在上述Binder组件中，核心组件是Binder驱动程序。Service Manager提供了辅助管理的功能，Client和Server正是在Binder驱动和Service Manager提供的基础设施上实现Client/Server之间通信功能的。Service Manager和Binder驱动已经在Android平台中实现完毕，开发者只要按照规范实现自己的Client和Server组件即可。
+
+##何为RPC?
+<p>
+    RPC是指远程过程调用，也就是说两台服务器A,B,一个应用部署在A服务器上,想要调用B服务器上应用提供的函数/方法，由于不再一个内存空间，不能直接底样用，需要通过网络来表达调用的语义和传达调用的数据。　
+</p>
+![RPC过程图](http://chuantu.biz/t6/320/1527475510x-1404764888.jpg)
 
 说实话，Android系统的Binder机制比较难以理解,而Bidner机制无论从系统开发还是应用开发的角度来看，都是Android系统中最重要的组成，所以很有必要深入了解Binder的工作方式，最好的方式还是阅读Binder相关的Fucking Code。
+
+### 进入Binder系统
+    要想深入理解Binder机制，必须了解Binder在用户空间的3个组件Client、Server和Service Manager之间的相互关系，并了解内核空间中Binder驱动程序的数据结构和设计原理。具体来说，Android系统Binder机制中的4个组件Client、Server、Service Manager和Binder驱动程序的关系,如图。
+![组件Client、Server、Service Manager和Binder驱动程序的关系](http://chuantu.biz/t6/320/1527477094x-1566657549.png)
+
+
 
 
 
