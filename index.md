@@ -21,7 +21,7 @@
 
 ### 何为RPC?
 <p>
-    RPC是指远程过程调用，也就是说两台服务器A,B,一个应用部署在A服务器上,想要调用B服务器上应用提供的函数/方法，由于不再一个内存空间，不能直接底样用，需要通过网络来表达调用的语义和传达调用的数据。　
+    RPC是指远程过程调用，也就是说两台服务器A,B,一个应用部署在A服务器上,想要调用B服务器上应用提供的函数/方法，由于不再一个内存空间，不能直接调用，需要通过网络来表达调用的语义和传达调用的数据。　
 </p>
 
 ![RPC过程图](http://chuantu.biz/t6/320/1527475510x-1404764888.jpg)
@@ -44,8 +44,16 @@
 
 -（5）Service Manager是一个保护进程，用来管理Server，并向Client提供查询Server接口的能力。
 
+## 进入Fucking Code 之 ServiceManager
+> 进入之前先带着问题，ServiceManager在整个Binder机制中是处于什么角色?它是如何协调Server、Client和Binder内核驱动之间的关系的?
 
+在Android系统中，Service Manager负责告知Binder驱动程序它是Binder机制的上下文管理者。Service Manager是整个Binder机制的保护进程，用来管理开发者创建的各种Server，并且向Client提供查询Server远程接口的功能。
 
+因为Service Manager组件是用来管理Server并且向Client提供查询Server远程接口的功能，所以Service Manager必然要和Server以及Client进行通信。Service Manger、Client和Server三者分别是运行在独立的进程当中的，这样它们之间的通信也属于进程间的通信，而且也是采用Binder机制进行进程间通信。因此，Service Manager在充当Binder机制的保护进程的角色的同时也在充当Server的角色，也是一种特殊的Server。
+
+Service Manager在用户空间的源代码位于“frameworks/base/cmds/servicemanager”目录下，主要是由文件binder.h、binder.c和service_manager.c组成。Service Manager在Binder机制中的基本执行流程如下图所示。
+
+![Service Manager在Binder机制中的基本执行流程](http://chuantu.biz/t6/320/1527494412x-1566657549.png)
 
 
 
